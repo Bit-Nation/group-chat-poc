@@ -1,41 +1,37 @@
 const libp2p = require('libp2p');
 const TCP = require('libp2p-tcp');
-const spdy = require('libp2p-spdy');
 const secio = require('libp2p-secio');
-const MulticastDNS = require('libp2p-mdns');
 const DHT = require('libp2p-kad-dht');
 const Railing = require('libp2p-railing');
+const Multiplex = require('libp2p-multiplex');
+
+const bootstrapers = [
+    '/ip4/104.131.131.82/tcp/4001/ipfs/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ',
+    '/ip4/104.236.176.52/tcp/4001/ipfs/QmSoLnSGccFuZQJzRadHn95W2CrSFmZuTdDWP8HXaHca9z',
+    '/ip4/104.236.179.241/tcp/4001/ipfs/QmSoLPppuBtQSGwKDZT2M73ULpjvfd3aZ6ha4oFGL1KrGM',
+    '/ip4/162.243.248.213/tcp/4001/ipfs/QmSoLueR4xBeUbY9WZ9xGUUxunbKWcrNFTDAadQJmocnWm',
+    '/ip4/128.199.219.111/tcp/4001/ipfs/QmSoLSafTMBsPKadTEgaXctDQVcqN88CNLHXMkTNwMKPnu',
+    '/ip4/104.236.76.40/tcp/4001/ipfs/QmSoLV4Bbm51jM9C4gDYZQ9Cy3U6aXMJDAbzgu2fzaDs64',
+    '/ip4/178.62.158.247/tcp/4001/ipfs/QmSoLer265NRgSp2LA3dPaeykiS1J6DifTC88f5uVQKNAd',
+    '/ip4/178.62.61.185/tcp/4001/ipfs/QmSoLMeWqB7YGVLJN3pNLQpmmEk35v6wYtsMGLzSr5QBU3',
+    '/ip4/104.236.151.122/tcp/4001/ipfs/QmSoLju6m7xTh3DuokvT3886QRYqxAzb1kShaanJgW36yx'
+];
 
 class Node extends libp2p {
-    constructor (peerInfo, peerBook, options) {
-        options = options || {};
 
+    constructor (peerInfo) {
         const modules = {
-            //Add more transports
             transport: [
                 new TCP()
             ],
             connection: {
-                muxer: [
-                    spdy
-                ],
-                crypto: [
-                    secio
-                ]
+                muxer: [Multiplex],
+                crypto: [secio]
             },
-            DHT: DHT,
-            //Add railing
-            discovery: [
-                new MulticastDNS(peerInfo, 2000)
-            ]
+            discovery: [new Railing(bootstrapers, 2000)],
+            DHT: DHT
         };
-
-        if(options.railing){
-            modules.discovery.push(new Railing('/ip4/172.18.0.4/tcp/34405/ipfs/QmesHkBq4nEo8JEXDhEjjQTvnzCLGcSqrUgS7j2xXAWnuQ', 2000));
-        }
-
-        super(modules, peerInfo, peerBook, options);
-
+        super(modules, peerInfo)
     }
 }
 
